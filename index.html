@@ -63,6 +63,10 @@ button {
     cursor: pointer;
 }
 
+button:active {
+    transform: scale(0.97);
+}
+
 .create-btn {
     background: #111;
     color: white;
@@ -106,19 +110,29 @@ button {
 .status {
     display: flex;
     margin-top: 10px;
-    gap: 20px;
+    gap: 8px;
 }
 
-.status label {
-    font-size: 15px;
-    display: flex;
-    align-items: center;
-    gap: 5px;
+.status button {
+    flex: 1;
 }
 
-.status input {
-    width: 19px;
-    height: 19px;
+.correct-btn {
+    background: #d8f3dc;
+}
+
+.correct-btn.selected {
+    background: #16803c;
+    color: white;
+}
+
+.wrong-btn {
+    background: #ffdada;
+}
+
+.wrong-btn.selected {
+    background: #c62828;
+    color: white;
 }
 
 .result {
@@ -181,6 +195,14 @@ button {
     #lectureName {
         width: 100%;
         flex-basis: 100%;
+    }
+
+    #questionCount {
+        flex: 1;
+    }
+
+    .create-btn {
+        flex: 1;
     }
 }
 </style>
@@ -270,4 +292,256 @@ button {
     </button>
 
     <button
-       
+        class="submit"
+        onclick="calculateResult()"
+    >
+        Submit / Calculate Result
+    </button>
+
+</div>
+
+<script>
+
+function createQuestions() {
+
+    const lectureName =
+        document.getElementById("lectureName").value.trim();
+
+    const count =
+        parseInt(document.getElementById("questionCount").value);
+
+    if (!lectureName) {
+        alert("Please enter a lecture or test name.");
+        return;
+    }
+
+    if (!count || count < 1 || count > 300) {
+        alert("Please enter a question count between 1 and 300.");
+        return;
+    }
+
+    const questionsContainer =
+        document.getElementById("questions");
+
+    questionsContainer.innerHTML = "";
+
+    document.getElementById("result").style.display = "none";
+
+    for (let i = 1; i <= count; i++) {
+
+        const question = document.createElement("div");
+
+        question.className = "question";
+
+        question.innerHTML = `
+
+            <div class="question-title">
+                Question ${i}
+            </div>
+
+            <div class="answers">
+
+                <button
+                    class="answer"
+                    onclick="selectAnswer(this)"
+                >
+                    A
+                </button>
+
+                <button
+                    class="answer"
+                    onclick="selectAnswer(this)"
+                >
+                    B
+                </button>
+
+                <button
+                    class="answer"
+                    onclick="selectAnswer(this)"
+                >
+                    C
+                </button>
+
+                <button
+                    class="answer"
+                    onclick="selectAnswer(this)"
+                >
+                    D
+                </button>
+
+            </div>
+
+            <div class="status">
+
+                <button
+                    class="correct-btn"
+                    onclick="selectStatus(this, 'correct')"
+                >
+                    ✅ Correct
+                </button>
+
+                <button
+                    class="wrong-btn"
+                    onclick="selectStatus(this, 'wrong')"
+                >
+                    ❌ Wrong
+                </button>
+
+            </div>
+
+        `;
+
+        questionsContainer.appendChild(question);
+    }
+
+    window.scrollTo({
+        top: document.querySelector(".container").offsetTop,
+        behavior: "smooth"
+    });
+}
+
+
+function selectAnswer(button) {
+
+    const parent =
+        button.parentElement;
+
+    const buttons =
+        parent.querySelectorAll(".answer");
+
+    buttons.forEach(function(btn) {
+        btn.classList.remove("selected");
+    });
+
+    button.classList.add("selected");
+}
+
+
+function selectStatus(button, status) {
+
+    const parent =
+        button.parentElement;
+
+    const correctButton =
+        parent.querySelector(".correct-btn");
+
+    const wrongButton =
+        parent.querySelector(".wrong-btn");
+
+    correctButton.classList.remove("selected");
+    wrongButton.classList.remove("selected");
+
+    button.classList.add("selected");
+}
+
+
+function calculateResult() {
+
+    const questions =
+        document.querySelectorAll(".question");
+
+    if (questions.length === 0) {
+        alert("Please create the questions first.");
+        return;
+    }
+
+    let correct = 0;
+    let wrong = 0;
+    let unattempted = 0;
+
+    questions.forEach(function(question) {
+
+        const correctButton =
+            question.querySelector(".correct-btn");
+
+        const wrongButton =
+            question.querySelector(".wrong-btn");
+
+        if (correctButton.classList.contains("selected")) {
+
+            correct++;
+
+        } else if (wrongButton.classList.contains("selected")) {
+
+            wrong++;
+
+        } else {
+
+            unattempted++;
+
+        }
+
+    });
+
+    const attempted =
+        correct + wrong;
+
+    let accuracy = 0;
+
+    if (attempted > 0) {
+        accuracy =
+            ((correct / attempted) * 100).toFixed(2);
+    }
+
+    document.getElementById("correct").textContent =
+        correct;
+
+    document.getElementById("wrong").textContent =
+        wrong;
+
+    document.getElementById("unattempted").textContent =
+        unattempted;
+
+    document.getElementById("attempted").textContent =
+        attempted;
+
+    document.getElementById("accuracy").textContent =
+        accuracy + "%";
+
+    document.getElementById("result").style.display =
+        "block";
+
+    window.scrollTo({
+        top: 0,
+        behavior: "smooth"
+    });
+}
+
+
+function resetAll() {
+
+    const confirmed =
+        confirm("Are you sure you want to reset everything?");
+
+    if (!confirmed) {
+        return;
+    }
+
+    document.getElementById("lectureName").value = "";
+
+    document.getElementById("questionCount").value = 100;
+
+    document.getElementById("questions").innerHTML = "";
+
+    document.getElementById("result").style.display = "none";
+
+    document.getElementById("correct").textContent = "0";
+
+    document.getElementById("wrong").textContent = "0";
+
+    document.getElementById("unattempted").textContent = "0";
+
+    document.getElementById("attempted").textContent = "0";
+
+    document.getElementById("accuracy").textContent = "0%";
+
+    window.scrollTo({
+        top: 0,
+        behavior: "smooth"
+    });
+}
+
+</script>
+
+</body>
+</html>
